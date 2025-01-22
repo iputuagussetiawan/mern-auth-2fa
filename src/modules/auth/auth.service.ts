@@ -10,6 +10,8 @@ import SessionModel from "../../database/models/session.model";
 import jwt from "jsonwebtoken";
 import { config } from "../../config/app.config";
 import { refreshTokenSignOptions, RefreshTPayload, signJwtToken, verifyJwtToken } from "../../common/utils/jwt";
+import { sendEmail } from "../../mailers/mailer";
+import { verifyEmailTemplate } from "../../mailers/templates/template";
 
 
 
@@ -28,13 +30,21 @@ export class AuthService {
         const newUser=await UserModel.create({name, email, password});
         const userId=newUser._id;
 
-        const verificationCode=await VerificationCodeModel.create({
+        const verification=await VerificationCodeModel.create({
             userId,
             type: VerificationEnum.EMAIL_VERIFICATION,
             expiresAt: fortyFiveMinutesFromNow(),
         });
 
         //sending verification email link
+        const verificationUrl=`${config.APP_ORIGIN}/confirm-account?code=${verification.code}`;
+        await sendEmail({
+            to: newUser.email,
+            ...verifyEmailTemplate(verificationUrl)
+        })
+
+
+
         return {
             user:newUser
         }
