@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { AuthService } from "./auth.service";
 import { HTTPSTATUS } from "../../config/http.config";
-import { loginSchema, registerSchema, verificationEmailSchema } from "../../common/validators/auth.validator";
-import { getAccessTokenCookieOptions, getRefreshTokenCookieOptions, setAuthenticationCookies } from "../../common/utils/cookie";
-import { UnauthorizedException } from "../../common/utils/catch-errors";
+import { emailSchema, loginSchema, registerSchema, resetPasswordSchema, verificationEmailSchema } from "../../common/validators/auth.validator";
+import { clearAuthenticationCookies, getAccessTokenCookieOptions, getRefreshTokenCookieOptions, setAuthenticationCookies } from "../../common/utils/cookie";
+import { NotFoundException, UnauthorizedException } from "../../common/utils/catch-errors";
 
 export class AuthController {
     private authService: AuthService
@@ -77,4 +77,37 @@ export class AuthController {
         }
     );
 
+    public forgotPassword = asyncHandler(
+        async (req: Request, res: Response): Promise<any> => {
+            const email = emailSchema.parse(req.body.email);
+            await this.authService.forgotPassword(email);
+        
+            return res.status(HTTPSTATUS.OK).json({
+                message: "Password reset email sent",
+            });
+        }
+    );
+
+    public resetPassword = asyncHandler(
+        async (req: Request, res: Response): Promise<any> => {
+            const body = resetPasswordSchema.parse(req.body);
+            await this.authService.resetPassword(body);
+            return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+                message: "Reset Password successfully",
+            });
+        }   
+    );
+
+    public logout = asyncHandler(
+        async (req: Request, res: Response): Promise<any> => {
+            const sessionId = req.sessionId;
+            if (!sessionId) {
+                throw new NotFoundException("Session is invalid.");
+            }
+            await this.authService.logout(sessionId);
+            return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+                message: "User logout successfully",
+            });
+        }
+    );
 }
