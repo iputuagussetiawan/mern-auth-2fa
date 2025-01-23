@@ -9,6 +9,8 @@ import { HTTPSTATUS } from "./config/http.config";
 import { asyncHandler } from "./middlewares/asyncHandler";
 import passport from "./middlewares/passport";
 import authRoutes from "./modules/auth/auth.routes";
+import { authenticateJWT } from "./common/strategies/jwt.strategy";
+import sessionRoutes from "./modules/session/session.routes";
 
 
 const app=express();
@@ -33,6 +35,7 @@ app.post(
 );
 
 app.use(`${BASE_PATH}/auth`, authRoutes);
+app.use(`${BASE_PATH}/session`, authenticateJWT, sessionRoutes);
 
 app.use(errorHandler);
 app.listen(config.PORT, async () => {
