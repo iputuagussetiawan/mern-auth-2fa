@@ -11,6 +11,7 @@ import passport from "./middlewares/passport";
 import authRoutes from "./modules/auth/auth.routes";
 import { authenticateJWT } from "./common/strategies/jwt.strategy";
 import sessionRoutes from "./modules/session/session.routes";
+import mfaRoutes from "./modules/mfa/mfa.routes";
 
 
 const app=express();
@@ -36,6 +37,7 @@ app.post(
 
 app.use(`${BASE_PATH}/auth`, authRoutes);
 app.use(`${BASE_PATH}/session`, authenticateJWT, sessionRoutes);
+app.use(`${BASE_PATH}/mfa`, authenticateJWT, mfaRoutes);
 
 app.use(errorHandler);
 app.listen(config.PORT, async () => {
